@@ -1,0 +1,36 @@
+{
+  "name": "blckchain_test",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "npm run build && clear && node dist/main.js ",
+    "build": "tsc && tsc-alias"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "jiti": "^2.5.1",
+    "prettier": "^3.6.2",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0"
+  },
+  "dependencies": {
+    "@api/tron": "file:.api/apis/tron",
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.2",
+    "p-limit": "^7.1.1",
+    "tsconfig-paths": "^4.2.0",
+    "winston": "^3.17.0"
+  }
+}

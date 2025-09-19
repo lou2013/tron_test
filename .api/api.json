@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "tron",
+      "source": "@tron/v4.8.0#1a37g8csmczdi8xo",
+      "integrity": "sha512-nEvj+Tzn4OQMd0Bz9ZAZeJJ8shDdm4zW1Cj0t4ysYhEZkmUzJsDpt6tpZKzsNWUz6YnMuFY2UjZvZ5OtpkkOfQ==",
+      "installerVersion": "6.1.3"
+    }
+  ]
+}
