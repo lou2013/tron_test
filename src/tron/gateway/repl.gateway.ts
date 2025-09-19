@@ -89,6 +89,6 @@ export class REPLGateway implements GatewayInterface {
   async handleGetBlockFrom(args: string[]): Promise<void> {
     const { isValid, input: blockNum } = this.validator.validateInputBlock(args);
     if (!isValid) return;
-    await this.tronService.fetchAndAnalyze(blockNum);
+    await this.tronService.fetchAndAnalyzeStreaming(blockNum);
   }
 }

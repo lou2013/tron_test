@@ -1,10 +1,15 @@
+import { EventEmitter } from 'stream';
+
 import { ConfigService } from '@src/common/config/config.service';
 import { retry } from '@src/common/helper/retry';
 import { LoggerInterface } from '@src/common/interace/logger.interface';
 import { TronApiInterface } from '@src/common/interace/tron.api.interface';
 import { TronServiceInterface } from '@src/common/interace/tron.service.interface';
 import pLimit from 'p-limit';
-
+interface BlockResult {
+  number: number;
+  trxCount: number;
+}
 export class TronService implements TronServiceInterface {
   constructor(
     private readonly logger: LoggerInterface,
@@ -13,7 +18,7 @@ export class TronService implements TronServiceInterface {
   ) {}
 
   async fetchAndAnalyze(startBlock: number): Promise<void> {
-    const BATCH_SIZE = parseInt(this.configService.get('BATCH_SIZE', '20')!, 10) || 20;
+    const BATCH_SIZE = parseInt(this.configService.get('BATCH_SIZE', '1')!, 10) || 20;
     const CONCURENCY_LIMIT = parseInt(this.configService.get('CONCURENCY_LIMIT', '5')!, 10) || 5;
     const limit = pLimit(CONCURENCY_LIMIT);
 
@@ -31,6 +36,59 @@ export class TronService implements TronServiceInterface {
     }
 
     this.logger.info('Reached latest block. Done.');
+  }
+
+  async fetchAndAnalyzeStreaming(startBlock: number): Promise<void> {
+    const LIMIT_SIZE = parseInt(this.configService.get('LIMIT_SIZE', '5')!, 10) || 20;
+    const BATCH_SIZE = parseInt(this.configService.get('BATCH_SIZE', '20')!, 10) || 200;
+    const limit = pLimit(LIMIT_SIZE);
+
+    let currentBlock = startBlock;
+    const channel = new EventEmitter();
+
+    channel.on('result', (res: BlockResult) => {
+      this.logger.info(`Block ${res.number}: ${res.trxCount} txs`);
+    });
+
+    channel.on('error', (err: Error, blockNumber: number) => {
+      this.logger.error(`Block ${blockNumber} failed: ${err.message}`);
+    });
+
+    channel.on('done', () => {
+      this.logger.info('Finished streaming all blocks');
+    });
+
+    while (true) {
+      let lastBlockNumber: number;
+      try {
+        lastBlockNumber = await this.tronApi.getLatestBlockNumber();
+      } catch (err) {
+        console.error(`Failed to fetch latest block: ${(err as Error).message}`);
+        break;
+      }
+
+      if (currentBlock > lastBlockNumber) {
+        channel.emit('done');
+        break;
+      }
+
+      const batchEnd = Math.min(currentBlock + BATCH_SIZE - 1, lastBlockNumber);
+
+      const tasks = Array.from({ length: batchEnd - currentBlock + 1 }, (_, i) => {
+        const blockNumber = currentBlock + i;
+        return limit(async () => {
+          try {
+            const result = await this.fetchBlock(blockNumber);
+            channel.emit('result', result);
+          } catch (err) {
+            channel.emit('error', err as Error, blockNumber);
+          }
+        });
+      });
+
+      await Promise.all(tasks);
+      currentBlock = batchEnd + 1;
+    }
   }
 
   private async processBatch(
