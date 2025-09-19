@@ -39,8 +39,8 @@ export class TronService implements TronServiceInterface {
   }
 
   async fetchAndAnalyzeStreaming(startBlock: number): Promise<void> {
-    const LIMIT_SIZE = parseInt(this.configService.get('LIMIT_SIZE', '5')!, 10) || 20;
-    const BATCH_SIZE = parseInt(this.configService.get('BATCH_SIZE', '20')!, 10) || 200;
+    const LIMIT_SIZE = parseInt(this.configService.get('LIMIT_SIZE', '10')!, 10) || 10;
+    const BATCH_SIZE = parseInt(this.configService.get('BATCH_SIZE', '200')!, 10) || 200;
     const limit = pLimit(LIMIT_SIZE);
 
     let currentBlock = startBlock;
